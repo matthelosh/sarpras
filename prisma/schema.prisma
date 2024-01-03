@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model category {
+  id        Int      @id @default(autoincrement())
+  code      String   @db.VarChar(50)
+  label     String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+  item      item[]
+}
+
+model item {
+  id          Int          @id @default(autoincrement())
+  code        String       @db.VarChar(255)
+  label       String       @db.VarChar(255)
+  createdAt   DateTime     @default(now()) @db.Timestamp(0)
+  description String?      @db.Text
+  image       String?      @db.VarChar(255)
+  status      item_status?
+  budget      item_budget?
+  published   Boolean      @default(false)
+  authorId    Int
+  categoryId  Int
+  user        user         @relation(fields: [authorId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "item_ibfk_1")
+  category    category     @relation(fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "item_ibfk_2")
+
+  @@index([authorId], map: "authorId")
+  @@index([categoryId], map: "categoryId")
+}
+
+model user {
+  id    Int     @id @default(autoincrement())
+  name  String? @db.VarChar(255)
+  username String @db.VarChar(100) @unique
+  email String  @unique(map: "email") @db.VarChar(255)
+  password String @db.Text
+  token String? @db.VarChar(255)
+  item  item[]
+}
+
+enum item_status {
+  Laik
+  Rusak_Ringan @map("Rusak Ringan")
+  Rusak_Berat  @map("Rusak Berat")
+  Dihapuskan
+}
+
+enum item_budget {
+  BOSREG
+  BOSKAB
+  SWADAYA
+  HIBAH
+}
